@@ -1,11 +1,11 @@
 name: Android CI
 on:
-  push:
-    branches:
-      - main
-      - dev
-    paths-ignore:
-      - '**/*.md'
+  # push:
+  #   branches:
+  #     - main
+  #     - dev
+  #   paths-ignore:
+  #     - '**/*.md'
   workflow_dispatch:
 
 jobs:
@@ -19,8 +19,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
           cache: gradle
 
       - name: Decode and create xed.keystore
@@ -52,11 +52,11 @@ jobs:
       - name: Delete xed.keystore and signing.properties
         run: rm /tmp/xed.keystore /tmp/signing.properties
 
-      - name: Send APK to Telegram
-        if: ${{ success() && github.event.head_commit.message != '' }}
-        run: |
-          curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT }}/sendDocument" \
-          -F chat_id="-1002292589492" \
-          -F message_thread_id="116" \
-          -F caption="${{ github.event.head_commit.message }} by ${{ github.actor }}" \
-          -F document=@"app/reterminal-${{ env.COMMIT_HASH }}.apk"
+      # - name: Send APK to Telegram
+      #   if: ${{ success() && github.event.head_commit.message != '' }}
+      #   run: |
+      #     curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT }}/sendDocument" \
+      #     -F chat_id="-1002292589492" \
+      #     -F message_thread_id="116" \
+      #     -F caption="${{ github.event.head_commit.message }} by ${{ github.actor }}" \
+      #     -F document=@"app/reterminal-${{ env.COMMIT_HASH }}.apk"
