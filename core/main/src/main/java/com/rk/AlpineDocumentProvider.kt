@@ -14,15 +14,13 @@ import android.provider.DocumentsProvider
 import android.util.Log
 import android.webkit.MimeTypeMap
 import com.rk.libcommons.alpineHomeDir
-import com.rk.resources.getString
-import com.rk.resources.strings
+import com.rk.terminal.R
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.util.Collections
 import java.util.LinkedList
 import java.util.Locale
-import com.rk.terminal.R
 
 class AlpineDocumentProvider : DocumentsProvider() {
     override fun queryRoots(projection: Array<String>?): Cursor {
@@ -141,6 +139,33 @@ class AlpineDocumentProvider : DocumentsProvider() {
     }
 
     @Throws(FileNotFoundException::class)
+    override fun renameDocument(documentId: String?, displayName: String): String? {
+        val file = getFileForDocId(documentId!!)
+        val parent = file.getParentFile()
+        if (parent == null) {
+            throw FileNotFoundException("Failed to rename root document with id " + documentId)
+        }
+        if (displayName == null || displayName.trim { it <= ' ' }.isEmpty()) {
+            throw FileNotFoundException("Failed to rename document with id " + documentId)
+        }
+        if (displayName == file.getName()) {
+            return documentId
+        }
+        if (displayName.contains(File.separator)) {
+            throw FileNotFoundException("Invalid display name for rename: " + displayName)
+        }
+
+        val target = File(parent, displayName)
+        if (target.exists()) {
+            throw FileNotFoundException("Target already exists: " + target.getAbsolutePath())
+        }
+        if (!file.renameTo(target)) {
+            throw FileNotFoundException("Failed to rename document with id " + documentId)
+        }
+        return getDocIdForFile(target)
+    }
+
+    @Throws(FileNotFoundException::class)
     override fun getDocumentType(documentId: String): String {
         val file = getFileForDocId(documentId)
         return getMimeType(file)
@@ -218,8 +243,10 @@ class AlpineDocumentProvider : DocumentsProvider() {
         } else if (file.canWrite()) {
             flags = flags or DocumentsContract.Document.FLAG_SUPPORTS_WRITE
         }
-        if (file.parentFile?.canWrite() == true) flags =
-            flags or DocumentsContract.Document.FLAG_SUPPORTS_DELETE
+        if (file.parentFile?.canWrite() == true) {
+            flags = flags or DocumentsContract.Document.FLAG_SUPPORTS_DELETE
+            flags = flags or DocumentsContract.Document.FLAG_SUPPORTS_RENAME
+        }
 
         val displayName = file.name
         val mimeType = getMimeType(file)
