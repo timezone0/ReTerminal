@@ -11,7 +11,7 @@ fi
 export PS1="\[\e[38;5;46m\]\u\[\033[39m\]@reterm \[\033[39m\]\w \[\033[0m\]\\$ "
 # shellcheck disable=SC2034
 export PIP_BREAK_SYSTEM_PACKAGES=1
-required_packages="bash gcompat glib nano"
+required_packages="bash gcompat glib nano zsh"
 missing_packages=""
 for pkg in $required_packages; do
     if ! apk info -e $pkg >/dev/null 2>&1; then
@@ -36,9 +36,18 @@ fi
 
 if [ "$#" -eq 0 ]; then
     source /etc/profile
-    export PS1="\[\e[38;5;46m\]\u\[\033[39m\]@reterm \[\033[39m\]\w \[\033[0m\]\\$ "
+#    export PS1="\[\e[38;5;46m\]\u\[\033[39m\]@reterm \[\033[39m\]\w \[\033[0m\]\\$ "
+#    /bin/ash
     cd $HOME
-    /bin/ash
+    ZSHRC_FILE="$HOME/.zshrc"
+
+    if [ ! -f "$ZSHRC_FILE" ]; then
+      echo "PROMPT='%F{green}%n%f@reterm %~ %# '" >> "$ZSHRC_FILE"
+      echo "bindkey '\e[H' beginning-of-line" >> "$ZSHRC_FILE"
+      echo "bindkey '\e[F' end-of-line" >> "$ZSHRC_FILE"
+    fi
+
+    /bin/zsh
 else
     exec "$@"
 fi

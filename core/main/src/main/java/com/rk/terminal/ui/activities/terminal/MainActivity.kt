@@ -1,40 +1,35 @@
 package com.rk.terminal.ui.activities.terminal
 
-import android.app.Activity
-import android.app.PendingIntent
+import android.Manifest
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Rect
-import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.IBinder
+import android.provider.Settings
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.rk.terminal.service.SessionService
 import com.rk.terminal.ui.navHosts.MainActivityNavHost
-import com.rk.terminal.ui.screens.terminal.TerminalScreen
 import com.rk.terminal.ui.screens.terminal.terminalView
 import com.rk.terminal.ui.theme.KarbonTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.File
 
 class MainActivity : ComponentActivity() {
     var sessionBinder:SessionService.SessionBinder? = null
@@ -53,12 +48,15 @@ class MainActivity : ComponentActivity() {
                         Surface {
                             val navController = rememberNavController()
                             MainActivityNavHost(navController = navController, mainActivity = this@MainActivity)
+
+                            /*LaunchedEffect(Unit) {
+                                withFrameNanos { }
+                                requestAllPermissions()
+                            }*/
                         }
                     }
                 }
             }
-
-
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
@@ -87,31 +85,83 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-
-    private var denied = 1
+    private var notificationDenied = 1
     private val requestNotificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (!isGranted && denied <= 2) {
-                denied++
-                requestPermission()
+            if (!isGranted && notificationDenied <= 2) {
+                notificationDenied++
+                requestNotificationPermissionSafe()
+            } else {
+                requestFilePermissionSafe()
             }
         }
 
-    fun requestPermission(){
-        // Only request on Android 13+ (API 33+)
+    private fun requestNotificationPermissionSafe() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
                 requestNotificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                requestFilePermissionSafe()
+            }
+        } else {
+            requestFilePermissionSafe()
+        }
+    }
+
+    private var fileDenied = 1
+    private val requestReadWritePermission =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+            val readGranted = result[Manifest.permission.READ_EXTERNAL_STORAGE] ?: false
+            val writeGranted = result[Manifest.permission.WRITE_EXTERNAL_STORAGE] ?: false
+
+            if ((!readGranted || !writeGranted) && fileDenied <= 2) {
+                fileDenied++
+                requestFilePermissionSafe()
             }
         }
+
+    private fun requestFilePermissionSafe() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                if (fileDenied <= 2) {
+                    fileDenied++
+                    try {
+                        val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                        intent.data = Uri.parse("package:$packageName")
+                        startActivity(intent)
+                    } catch (e: Exception) {
+                        val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                        startActivity(intent)
+                    }
+                }
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestReadWritePermission.launch(
+                    arrayOf(
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    )
+                )
+            }
+        }
+    }
+
+    fun requestAllPermissions() {
+        requestNotificationPermissionSafe()
     }
 
     var isKeyboardVisible = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        requestPermission()
-
+        requestAllPermissions()
         if (intent.hasExtra("awake_intent")){
             moveTaskToBack(true)
         }
@@ -145,5 +195,16 @@ class MainActivity : ComponentActivity() {
                 imm.showSoftInput(it, InputMethodManager.SHOW_IMPLICIT)
             }
         }
+    }
+
+    override fun attachBaseContext(newBase: Context?) {
+        val overrideConfig = Configuration(newBase?.resources?.configuration)
+
+        overrideConfig.uiMode =
+            overrideConfig.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv() or Configuration.UI_MODE_NIGHT_YES
+
+        val wrapped = newBase?.createConfigurationContext(overrideConfig)
+
+        super.attachBaseContext(wrapped)
     }
 }

@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,6 +33,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -511,7 +513,8 @@ fun TerminalScreen(
                                             post {
                                                 val color = getViewColor()
 
-                                                keepScreenOn = true
+//                                                keepScreenOn = true
+                                                keepScreenOn = false
                                                 requestFocus()
                                                 isFocusableInTouchMode = true
 
@@ -552,7 +555,7 @@ fun TerminalScreen(
                                         state = pagerState,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(75.dp)
+                                            .wrapContentHeight()
                                     ) { page ->
                                         when (page) {
                                             0 -> {
@@ -582,7 +585,7 @@ fun TerminalScreen(
                                                     },
                                                     modifier = Modifier
                                                         .fillMaxWidth()
-                                                        .height(75.dp)
+                                                        .height(235.dp)
                                                 )
                                             }
 
@@ -598,6 +601,7 @@ fun TerminalScreen(
                                                             maxLines = 1
                                                             isSingleLine = true
                                                             imeOptions = EditorInfo.IME_ACTION_DONE
+                                                            requestFocus()
 
                                                             // Listen for text changes to update Compose state
                                                             doOnTextChanged { textInput, _, _, _ ->
@@ -748,7 +752,8 @@ fun changeSession(mainActivityActivity: MainActivity, session_id: String) {
                 typedValue,
                 true
             )
-            keepScreenOn = true
+//            keepScreenOn = true
+            keepScreenOn = false
             requestFocus()
             isFocusableInTouchMode = true
 
@@ -769,4 +774,59 @@ fun changeSession(mainActivityActivity: MainActivity, session_id: String) {
 
 
 const val VIRTUAL_KEYS =
-    ("[" + "\n  [" + "\n    \"ESC\"," + "\n    {" + "\n      \"key\": \"/\"," + "\n      \"popup\": \"\\\\\"" + "\n    }," + "\n    {" + "\n      \"key\": \"-\"," + "\n      \"popup\": \"|\"" + "\n    }," + "\n    \"HOME\"," + "\n    \"UP\"," + "\n    \"END\"," + "\n    \"PGUP\"" + "\n  ]," + "\n  [" + "\n    \"TAB\"," + "\n    \"CTRL\"," + "\n    \"ALT\"," + "\n    \"LEFT\"," + "\n    \"DOWN\"," + "\n    \"RIGHT\"," + "\n    \"PGDN\"" + "\n  ]" + "\n]")
+    ("""[
+  [
+    "ESC",
+    "/",
+    "-",
+    "HOME",
+    "UP",
+    "END",
+    "PGUP"
+  ],
+  [
+    "TAB",
+    "CTRL",
+    "ALT",
+    "LEFT",
+    "DOWN",
+    "RIGHT",
+    "PGDN"
+  ],
+  [
+    "APOSTROPHE",
+    "QUOTE",
+    "`",
+    "(",
+    ")",
+    "{",
+    "}"
+  ],
+  [
+    "+",
+    "*",
+    "=",
+    "<",
+    ">",
+    "[",
+    "]"
+  ],
+  [
+    "~",
+    "_",
+    "|",
+    "\\",
+    "%",
+    "!",
+    "?"
+  ],
+  [
+    "#",
+    "$",
+    ";",
+    ",",
+    ":",
+    ".",
+    "ENTER"
+  ]
+]""")

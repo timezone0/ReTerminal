@@ -24,14 +24,14 @@ fun getGitCommitDate(): String {
     return stdout.toString().trim()
 }
 
-fun getFullGitCommitHash(): String {
+/*fun getFullGitCommitHash(): String {
     val stdout = ByteArrayOutputStream()
     exec {
         commandLine("git", "rev-parse", "HEAD")
         standardOutput = stdout
     }
     return stdout.toString().trim()
-}
+}*/
 
 
 android {
@@ -47,19 +47,19 @@ android {
 
     buildTypes {
         release {
-            buildConfigField("String", "GIT_COMMIT_HASH", "\"${getFullGitCommitHash()}\"")
+            /*buildConfigField("String", "GIT_COMMIT_HASH", "\"${getFullGitCommitHash()}\"")
             buildConfigField("String", "GIT_SHORT_COMMIT_HASH", "\"${getGitCommitHash()}\"")
             buildConfigField("String", "GIT_COMMIT_DATE", "\"${getGitCommitDate()}\"")
             isMinifyEnabled = false
-            isShrinkResources = false
+            isShrinkResources = false*/
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
         }
         debug{
-            buildConfigField("String", "GIT_COMMIT_HASH", "\"${getFullGitCommitHash()}\"")
+            /*buildConfigField("String", "GIT_COMMIT_HASH", "\"${getFullGitCommitHash()}\"")
             buildConfigField("String", "GIT_SHORT_COMMIT_HASH", "\"${getGitCommitHash()}\"")
-            buildConfigField("String", "GIT_COMMIT_DATE", "\"${getGitCommitDate()}\"")
+            buildConfigField("String", "GIT_COMMIT_DATE", "\"${getGitCommitDate()}\"")*/
         }
     }
 

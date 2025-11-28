@@ -98,6 +98,7 @@ private val DarkColorScheme =
 
 @Composable
 fun KarbonTheme(
+
     darkTheme: Boolean = when (Settings.default_night_mode) {
         AppCompatDelegate.MODE_NIGHT_YES -> true
         AppCompatDelegate.MODE_NIGHT_NO -> false

@@ -38,7 +38,7 @@ object Settings {
         set(value) = Preference.setInt(key = "default_night_mode",value)
 
     var terminal_font_size
-        get() = Preference.getInt(key = "terminal_font_size", default = 13)
+        get() = Preference.getInt(key = "terminal_font_size", default = 11)
         set(value) = Preference.setInt(key = "terminal_font_size",value)
     var working_Mode
         get() = Preference.getInt(key = "workingMode", default = WorkingMode.ALPINE)

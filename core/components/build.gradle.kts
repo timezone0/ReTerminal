@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "org.robok.engine.core.components"
-    compileSdk = 34
+    compileSdk = 36
     
     defaultConfig {
         minSdk = 24
